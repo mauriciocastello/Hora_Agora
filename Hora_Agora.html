@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relógio Digital com Timer, Temporizador e Alarme</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #1a1a1a;
+            font-family: 'Arial', sans-serif;
+            color: white;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-around; /* Ajusta para colocar lado a lado */
+            align-items: center;
+            width: 80%;
+            flex-wrap: wrap;
+        }
+
+        /* Estilo para o relógio digital */
+        .clock {
+            font-size: 8rem; /* Aumentando o tamanho do relógio digital */
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* Estilo para os controles (Timer, Temporizador e Alarme) */
+        .controls {
+            background: #333;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: left;
+        }
+
+        .controls h2 {
+            margin-bottom: 20px;
+        }
+
+        .controls input,
+        .controls button {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.2rem;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .controls button {
+            background-color: #0000FF;
+            color: white;
+            cursor: pointer;
+        }
+
+        .controls button:hover {
+            background-color: #00f;
+        }
+
+        .timer-display, .stopwatch-display {
+            font-size: 2rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Controles do Timer, Temporizador e Alarme -->
+        <div class="controls">
+            <h2>Timer</h2>
+            <input type="number" id="time-input" placeholder="Segundos" />
+            <button onclick="iniciarTimer()">Iniciar Timer</button>
+            <p class="timer-display" id="timer-display">00:00</p>
+
+            <h2>Temporizador</h2>
+            <button onclick="iniciarTemporizador()">Iniciar</button>
+            <button onclick="pararTemporizador()">Parar</button>
+            <p class="stopwatch-display" id="stopwatch-display">00:00</p>
+
+            <h2>Alarme</h2>
+            <label for="alarm-hour">Hora:</label>
+            <input type="number" id="alarm-hour" placeholder="HH" min="0" max="23">
+            <label for="alarm-minute">Minuto:</label>
+            <input type="number" id="alarm-minute" placeholder="MM" min="0" max="59">
+            <label for="alarm-second">Segundo:</label>
+            <input type="number" id="alarm-second" placeholder="SS" min="0" max="59">
+            <button onclick="setAlarme()">Definir Alarme</button>
+            <p class="alarm-time" id="alarm-time-display">Alarme não definido</p>
+        </div>
+
+        <!-- Relógio Digital -->
+        <div class="clock" id="hora-local"></div>
+    </div>
+
+    <script>
+        // Função para mostrar a hora local atual (relógio digital)
+        function mostrarHoraLocal() {
+            const horaLocal = new Date();
+            const horas = horaLocal.getHours().toString().padStart(2, '0');
+            const minutos = horaLocal.getMinutes().toString().padStart(2, '0');
+            const segundos = horaLocal.getSeconds().toString().padStart(2, '0');
+            const dia = horaLocal.getDate();
+            const mes = horaLocal.getMonth() + 1;
+            const ano = horaLocal.getFullYear();
+
+            // Exibe a hora no formato HH:mm:ss
+            document.getElementById('hora-local').textContent = `${horas}:${minutos}:${segundos}`;
+
+            // Verifica se o alarme deve tocar
+            verificarAlarme(horaLocal);
+        }
+
+        // Função para verificar se o alarme deve tocar
+        let alarmeDefinido = false;
+        let alarmeHora = 0;
+        let alarmeMinuto = 0;
+        let alarmeSegundo = 0;
+
+        function verificarAlarme(horaLocal) {
+            if (alarmeDefinido) {
+                if (horaLocal.getHours() === alarmeHora && horaLocal.getMinutes() === alarmeMinuto && horaLocal.getSeconds() === alarmeSegundo) {
+                    document.getElementById('alarm-time-display').textContent = 'Alarme tocado!';
+                    alarmeDefinido = false; // Reseta o alarme após ser acionado
+                }
+            }
+        }
+
+        // Função para definir o alarme
+        function setAlarme() {
+            alarmeHora = parseInt(document.getElementById('alarm-hour').value);
+            alarmeMinuto = parseInt(document.getElementById('alarm-minute').value);
+            alarmeSegundo = parseInt(document.getElementById('alarm-second').value);
+
+            // Exibe o horário do alarme definido
+            const horaFormatada = alarmeHora.toString().padStart(2, '0');
+            const minutoFormatado = alarmeMinuto.toString().padStart(2, '0');
+            const segundoFormatado = alarmeSegundo.toString().padStart(2, '0');
+            document.getElementById('alarm-time-display').textContent = `Alarme definido para ${horaFormatada}:${minutoFormatado}:${segundoFormatado}`;
+
+            // Marca o alarme como definido
+            alarmeDefinido = true;
+        }
+
+        // Função para iniciar o timer
+        let timerInterval;
+        let timerSeconds = 0;
+        function iniciarTimer() {
+            timerSeconds = parseInt(document.getElementById('time-input').value);
+            if (isNaN(timerSeconds) || timerSeconds <= 0) {
+                alert("Por favor, insira um número válido de segundos.");
+                return;
+            }
+
+            timerInterval = setInterval(function() {
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('timer-display').textContent = "00:00";
+                    alert("Tempo esgotado!");
+                } else {
+                    timerSeconds--;
+                    const minutos = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                    const segundos = (timerSeconds % 60).toString().padStart(2, '0');
+                    document.getElementById('timer-display').textContent = `${minutos}:${segundos}`;
+                }
+            }, 1000);
+        }
+
+        // Função para iniciar o temporizador
+        let stopwatchInterval;
+        let stopwatchSeconds = 0;
+        function iniciarTemporizador() {
+            stopwatchInterval = setInterval(function() {
+                stopwatchSeconds++;
+                const minutos = Math.floor(stopwatchSeconds / 60).toString().padStart(2, '0');
+                const segundos = (stopwatchSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('stopwatch-display').textContent = `${minutos}:${segundos}`;
+            }, 1000);
+        }
+
+        // Função para parar o temporizador
+        function pararTemporizador() {
+            clearInterval(stopwatchInterval);
+        }
+
+        // Atualiza o relógio a cada segundo
+        setInterval(mostrarHoraLocal, 1000);
+    </script>
+</body>
+</html>
